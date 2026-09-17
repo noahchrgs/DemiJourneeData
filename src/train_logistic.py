@@ -4,7 +4,6 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import cross_val_predict, StratifiedKFold
 from sklearn.metrics import roc_auc_score, f1_score, accuracy_score
 from src.pipeline import pipeline, VARIABLES
-from tqdm import tqdm
 
 
 def test_models(
@@ -27,13 +26,11 @@ def test_models(
 
     results = []
 
-    n_vars_range = range(1, len(variables) + 1)
-
     skf = StratifiedKFold(n_splits=cv_folds, shuffle=True, random_state=random_state)
 
-    pbar_vars = tqdm(n_vars_range, desc="n_vars")
-    for n_vars in pbar_vars:
-        pbar_vars.set_description(f"training pour n_vars={n_vars}")
+
+    for n_vars in range(1, len(variables) + 1):
+
         subset_vars = variables[:n_vars]
 
         x_train, y_train, _ = pipeline(
@@ -44,9 +41,8 @@ def test_models(
             min_max=min_max,
         )
 
-        pbar_alphas = tqdm(alphas, desc="alpha", leave=False)
-        for alpha in pbar_alphas:
-            pbar_alphas.set_description(f"training pour alpha={alpha:.4f}")
+    
+        for alpha in alphas:
             C = 1.0 / alpha
 
             model = LogisticRegression(C=C, max_iter=1000)
@@ -61,9 +57,7 @@ def test_models(
                 auc = np.nan
                 print(f"[WARN] échec pour n_vars={n_vars}, alpha={alpha}: {e}")
 
-            pbar_thresholds = tqdm(thresholds, desc="threshold", leave=False)
-            for threshold in pbar_thresholds:
-                pbar_thresholds.set_description(f"threshold={threshold:.2f}")
+            for threshold in thresholds:
 
                 if proba is not None:
                     y_pred = (proba >= threshold).astype(int)
@@ -196,7 +190,7 @@ def get_best_model(
     }
  
 def predict_new_labels(model,variables,threshold,train_path: str = "data/farms_train.csv",
-    test_path: str = "data/farms_test.csv",z_score = False,min_max = False):
+    test_path: str = "data/farms_test.csv",z_score = False,min_max = False,res_path:str = "res/resultat_logistic.csv"):
     _,_,df_test = pipeline(
             train_path=train_path,
             test_path=test_path,
@@ -206,7 +200,7 @@ def predict_new_labels(model,variables,threshold,train_path: str = "data/farms_t
         )
 
     res = (model.predict(df_test) >= threshold).astype(int)
-    pd.DataFrame({"ID": [i for i in range(len(res))],"DIFF": res}).set_index("ID").to_csv("res/resultat_logistic.csv")
+    pd.DataFrame({"ID": [i for i in range(len(res))],"DIFF": res}).set_index("ID").to_csv(res_path)
 
 if __name__ == "__main__":
     df_results = test_models()

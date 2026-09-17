@@ -44,6 +44,19 @@
       ]
     }
   },
-  "hotPaths": [],
+  "hotPaths": [
+    {
+      "path": "README.md",
+      "accessCount": 1,
+      "lastAccessed": 1789644677243,
+      "type": "file"
+    },
+    {
+      "path": "data/ex_soumission.csv",
+      "accessCount": 1,
+      "lastAccessed": 1789644677637,
+      "type": "file"
+    }
+  ],
   "userDirectives": []
 }
